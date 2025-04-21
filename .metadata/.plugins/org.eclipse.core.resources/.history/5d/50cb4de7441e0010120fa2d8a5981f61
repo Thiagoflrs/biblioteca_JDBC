@@ -1,0 +1,195 @@
+package dao;
+
+import java.sql.*;
+import java.time.LocalDate;
+import util.DB;
+import util.DbException;
+
+public class EmprestimoDAO {
+
+    // REGISTRAR EMPRÉSTIMO
+    public static void registrarEmprestimo(int idAluno, int idLivro) throws SQLException {
+        Connection conn = null;
+        PreparedStatement stVerificaEstoque = null;
+        PreparedStatement stVerificaEmprestimos = null;
+        PreparedStatement stAtualizaEstoque = null;
+        PreparedStatement stEmprestimo = null;
+        ResultSet rsEstoque = null;
+        ResultSet rsEmprestimos = null;
+
+        try {
+            conn = DB.getConnection();
+            conn.setAutoCommit(false);
+
+            // Verifica quantos empréstimos ativos o aluno tem
+            String verificaEmprestimosSQL = "SELECT COUNT(*) AS total FROM emprestimos WHERE id_aluno = ? AND data_devolucao IS NULL";
+            stVerificaEmprestimos = conn.prepareStatement(verificaEmprestimosSQL);
+            stVerificaEmprestimos.setInt(1, idAluno);
+            rsEmprestimos = stVerificaEmprestimos.executeQuery();
+            rsEmprestimos.next();
+            int livrosEmUso = rsEmprestimos.getInt("total");
+
+            if (livrosEmUso >= 3) {
+                throw new DbException("Aluno já atingiu o limite de 3 empréstimos ativos.");
+            }
+
+            // Verifica estoque
+            String verificaEstoqueSQL = "SELECT quantidade_estoque FROM livros WHERE id_livro = ?";
+            stVerificaEstoque = conn.prepareStatement(verificaEstoqueSQL);
+            stVerificaEstoque.setInt(1, idLivro);
+            rsEstoque = stVerificaEstoque.executeQuery();
+
+            if (!rsEstoque.next()) throw new DbException("Livro não encontrado.");
+
+            int estoque = rsEstoque.getInt("quantidade_estoque");
+            System.out.println("Estoque disponível: " + estoque);
+
+            if (estoque <= 0) throw new DbException("Livro sem estoque disponível.");
+
+            // Atualiza estoque
+            String atualizaEstoqueSQL = "UPDATE livros SET quantidade_estoque = quantidade_estoque - 1 WHERE id_livro = ?";
+            stAtualizaEstoque = conn.prepareStatement(atualizaEstoqueSQL);
+            stAtualizaEstoque.setInt(1, idLivro);
+            stAtualizaEstoque.executeUpdate();
+
+            // Registra empréstimo
+            String emprestimoSQL = "INSERT INTO emprestimos (id_aluno, id_livro, data_emprestimo, data_devolucao) VALUES (?, ?, ?, ?)";
+            stEmprestimo = conn.prepareStatement(emprestimoSQL);
+            LocalDate hoje = LocalDate.now();
+            stEmprestimo.setInt(1, idAluno);
+            stEmprestimo.setInt(2, idLivro);
+            stEmprestimo.setDate(3, Date.valueOf(hoje));
+            stEmprestimo.setDate(4, Date.valueOf(hoje.plusDays(7))); // Devolução em 7 dias
+            stEmprestimo.executeUpdate();
+
+            conn.commit();
+
+            System.out.println("Empréstimo registrado com sucesso!");
+            System.out.println("Novo estoque: " + (estoque - 1));
+
+        } catch (SQLException e) {
+            if (conn != null) conn.rollback();
+            throw e;
+        } finally {
+            DB.closeResultSet(rsEstoque);
+            DB.closeResultSet(rsEmprestimos);
+            DB.closeStatement(stVerificaEstoque);
+            DB.closeStatement(stVerificaEmprestimos);
+            DB.closeStatement(stAtualizaEstoque);
+            DB.closeStatement(stEmprestimo);
+            DB.closeConnection(conn);
+        }
+    }
+
+    // DEVOLVER LIVRO
+    public static void devolverLivro(int idEmprestimo) throws SQLException {
+        Connection conn = null;
+        PreparedStatement stBusca = null;
+        PreparedStatement stAtualizaEstoque = null;
+        PreparedStatement stAtualizaEmprestimo = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DB.getConnection();
+            conn.setAutoCommit(false);
+
+            // Buscar id_livro
+            String buscaSQL = "SELECT id_livro FROM emprestimos WHERE id_emprestimo = ? AND data_devolucao IS NULL";
+            stBusca = conn.prepareStatement(buscaSQL);
+            stBusca.setInt(1, idEmprestimo);
+            rs = stBusca.executeQuery();
+
+            if (!rs.next()) {
+                throw new DbException("Empréstimo não encontrado ou já devolvido.");
+            }
+
+            int idLivro = rs.getInt("id_livro");
+
+            // Atualizar estoque
+            String atualizaEstoqueSQL = "UPDATE livros SET quantidade_estoque = quantidade_estoque + 1 WHERE id_livro = ?";
+            stAtualizaEstoque = conn.prepareStatement(atualizaEstoqueSQL);
+            stAtualizaEstoque.setInt(1, idLivro);
+            stAtualizaEstoque.executeUpdate();
+
+            // Atualizar registro de devolução
+            String atualizaEmprestimoSQL = "UPDATE emprestimos SET data_devolucao = ? WHERE id_emprestimo = ?";
+            stAtualizaEmprestimo = conn.prepareStatement(atualizaEmprestimoSQL);
+            stAtualizaEmprestimo.setDate(1, Date.valueOf(LocalDate.now()));
+            stAtualizaEmprestimo.setInt(2, idEmprestimo);
+            stAtualizaEmprestimo.executeUpdate();
+
+            conn.commit();
+            System.out.println("Livro devolvido com sucesso!");
+
+        } catch (SQLException e) {
+            if (conn != null) conn.rollback();
+            throw e;
+        } finally {
+            DB.closeResultSet(rs);
+            DB.closeStatement(stBusca);
+            DB.closeStatement(stAtualizaEstoque);
+            DB.closeStatement(stAtualizaEmprestimo);
+            DB.closeConnection(conn);
+        }
+    }
+
+    // LISTAR EMPRÉSTIMOS ATIVOS POR ALUNO
+    public static void listarEmprestimosAtivosPorAluno(int idAluno) throws SQLException {
+        Connection conn = null;
+        PreparedStatement st = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DB.getConnection();
+
+            // SQL para listar empréstimos ativos de um aluno
+            String sql = """
+                SELECT a.nome_aluno, a.curso, e.id_emprestimo, l.titulo, 
+                       e.data_emprestimo, e.data_devolucao
+                FROM emprestimos e
+                JOIN alunos a ON e.id_aluno = a.id_aluno
+                JOIN livros l ON e.id_livro = l.id_livro
+                WHERE e.id_aluno = ? AND e.data_devolucao IS NULL
+            """;
+
+            st = conn.prepareStatement(sql);
+            st.setInt(1, idAluno);
+            rs = st.executeQuery();
+
+            boolean temResultados = false;
+            int contador = 0;
+
+            while (rs.next()) {
+                if (!temResultados) {
+                    String nomeAluno = rs.getString("nome_aluno");
+                    String curso = rs.getString("curso");
+
+                    System.out.println("\nAluno: " + nomeAluno);
+                    System.out.println("Curso: " + curso);
+                    System.out.println("----------------------------------------");
+                    temResultados = true;
+                }
+
+                int idEmprestimo = rs.getInt("id_emprestimo");
+                String titulo = rs.getString("titulo");
+                Date dataEmprestimo = rs.getDate("data_emprestimo");
+                Date dataDevolucao = rs.getDate("data_devolucao");
+
+                System.out.printf("ID: %d | Livro: %s | Empréstimo: %s | Devolução: %s\n",
+                        idEmprestimo, titulo, dataEmprestimo, dataDevolucao);
+                contador++;
+            }
+
+            if (contador == 0) {
+                System.out.println("Nenhum empréstimo ativo encontrado para este aluno.");
+            }
+
+        } catch (SQLException e) {
+            throw new SQLException("Erro ao listar empréstimos ativos: " + e.getMessage());
+        } finally {
+            DB.closeResultSet(rs);
+            DB.closeStatement(st);
+            DB.closeConnection(conn);
+        }
+    }
+}

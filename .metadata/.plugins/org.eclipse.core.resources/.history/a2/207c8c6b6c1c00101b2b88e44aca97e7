@@ -1,0 +1,11 @@
+package db;
+
+import java.util.Properties;
+
+public class DB {
+	
+	/*Abre o arquivo db.properties e guarda no obj Properties*/
+	private static Properties loadProperties() {
+		try
+	}
+}

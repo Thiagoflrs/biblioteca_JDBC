@@ -1,0 +1,75 @@
+package dao;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+import db.DB;
+
+public class LivroDAO {
+	/*
+	 * Código para Recuperar Dados (LER)
+	 */
+	public static void lerLivros() {
+		// Conexão e consulta ao banco de dados
+		Connection conn = null;
+		Statement st = null; // Prepara consulta SQL
+		ResultSet rs = null; // Retorna o resultado
+		
+		System.out.println("==== LISTANDO LIVROS ====");
+
+		try {
+			conn = DB.getConnection(); // Conecta ao BD
+
+			st = conn.createStatement();
+
+			rs = st.executeQuery("SELECT * FROM livros"); // Inserir o comando SQL
+			
+			System.out.println("Listagem concluída: ");
+			while (rs.next()) { // Enquanto existir o próximo
+				System.out.println(rs.getInt("Id_livro") + ", " + rs.getString("titulo"));
+			}
+			System.out.println(); //Quebra de linha
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			DB.closeResultSet(rs);
+			DB.closeStatement(st);
+		}
+	}
+
+	/*
+	 * Atualizar dados
+	 */
+	public static void atualizarEstoqueLivro(int idLivro, int novaQuantidade) {
+		Connection conn = null;
+		PreparedStatement st = null;
+		
+		System.out.println("==== ATUALIZANDO ESTOQUE DO LIVRO ====");
+
+		try {
+			conn = DB.getConnection();
+
+			st = conn.prepareStatement(
+					"" + "UPDATE livros " + "SET quantidade_estoque = ? " + "WHERE " + "(id_livro = ?)");
+
+			st.setInt(1, novaQuantidade); // Novo valor para o estoque
+			st.setInt(2, idLivro); // Id do livro que será atualizado
+
+			int rowsAffected = st.executeUpdate();
+
+			if (rowsAffected > 0) {
+				System.out.println("Livro com ID " + idLivro + " atualizado com sucesso.");
+			} else {
+				System.out.println("Nenhum livro atualizado, ID informado não existe!");
+			}
+			System.out.println(); //Quebra de linha
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			DB.closeStatement(st);
+		}
+	}
+}

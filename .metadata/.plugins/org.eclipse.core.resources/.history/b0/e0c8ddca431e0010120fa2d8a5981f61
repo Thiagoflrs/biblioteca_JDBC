@@ -1,0 +1,105 @@
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDate;
+
+import model.Aluno;
+import model.Livro;
+import util.DB;
+import util.DbException;
+
+public class EmprestimoDAO {
+
+    public static void registrarEmprestimo(int idAluno, int idLivro) throws SQLException {
+        Connection conn = null;
+        PreparedStatement stVerificaEstoque = null;
+        PreparedStatement stVerificaEmprestimos = null;
+        PreparedStatement stAtualizaEstoque = null;
+        PreparedStatement stEmprestimo = null;
+        ResultSet rsEstoque = null;
+        ResultSet rsEmprestimos = null;
+
+        try {
+            conn = DB.getConnection();
+            conn.setAutoCommit(false);
+
+            // Verificar se o aluno existe
+            Aluno aluno = AlunoDAO.buscarPorId(idAluno);
+            if (aluno == null) {
+                throw new DbException("Aluno com ID " + idAluno + " não encontrado.");
+            }
+            System.out.println("Aluno: " + aluno.getNome() + " | Curso: " + aluno.getCurso());
+
+            // Verifica quantos empréstimos ativos o aluno tem
+            String verificaEmprestimosSQL = "SELECT COUNT(*) AS total FROM emprestimos WHERE id_aluno = ? AND data_entrega IS NULL";
+            stVerificaEmprestimos = conn.prepareStatement(verificaEmprestimosSQL);
+            stVerificaEmprestimos.setInt(1, idAluno);
+            rsEmprestimos = stVerificaEmprestimos.executeQuery();
+            rsEmprestimos.next();
+            int livrosEmUso = rsEmprestimos.getInt("total");
+
+            if (livrosEmUso >= 3) {
+                throw new DbException("Aluno já atingiu o limite de 3 empréstimos ativos.");
+            }
+
+            // Verifica o livro existe
+            Livro livro = LivroDAO.buscarPorId(idLivro);
+            if (livro == null) {
+                throw new DbException("Livro com ID " + idLivro + " não encontrado.");
+            }
+            System.out.println("Livro: " + livro.getTitulo());
+
+            // Verifica o estoque do livro
+            String verificaEstoqueSQL = "SELECT quantidade_estoque FROM livros WHERE id_livro = ?";
+            stVerificaEstoque = conn.prepareStatement(verificaEstoqueSQL);
+            stVerificaEstoque.setInt(1, idLivro);
+            rsEstoque = stVerificaEstoque.executeQuery();
+
+            if (!rsEstoque.next()) {
+                throw new DbException("Livro não encontrado.");
+            }
+
+            int estoque = rsEstoque.getInt("quantidade_estoque");
+            System.out.println("Estoque disponível: " + estoque);
+
+            if (estoque <= 0) {
+                throw new DbException("Livro sem estoque disponível.");
+            }
+
+            // Atualiza o estoque
+            String atualizaEstoqueSQL = "UPDATE livros SET quantidade_estoque = quantidade_estoque - 1 WHERE id_livro = ?";
+            stAtualizaEstoque = conn.prepareStatement(atualizaEstoqueSQL);
+            stAtualizaEstoque.setInt(1, idLivro);
+            stAtualizaEstoque.executeUpdate();
+
+            // Registra o empréstimo
+            String emprestimoSQL = "INSERT INTO emprestimos (id_aluno, id_livro, data_emprestimo, data_devolucao) VALUES (?, ?, ?, ?)";
+            stEmprestimo = conn.prepareStatement(emprestimoSQL);
+            LocalDate hoje = LocalDate.now();
+            stEmprestimo.setInt(1, idAluno);
+            stEmprestimo.setInt(2, idLivro);
+            stEmprestimo.setDate(3, Date.valueOf(hoje));
+            stEmprestimo.setDate(4, Date.valueOf(hoje.plusDays(7))); // Devolução em 7 dias
+            stEmprestimo.executeUpdate();
+
+            conn.commit();
+
+            System.out.println("Empréstimo registrado com sucesso!");
+            System.out.println("Novo estoque: " + (estoque - 1));
+
+        } catch (SQLException e) {
+            if (conn != null) conn.rollback();
+            throw e;
+        } finally {
+            DB.closeResultSet(rsEstoque);
+            DB.closeResultSet(rsEmprestimos);
+            DB.closeStatement(stVerificaEstoque);
+            DB.closeStatement(stVerificaEmprestimos);
+            DB.closeStatement(stAtualizaEstoque);
+            DB.closeStatement(stEmprestimo);
+            DB.closeConnection(conn);
+        }
+    }
+}

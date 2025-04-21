@@ -1,0 +1,129 @@
+package dao;
+
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+
+import db.DB;
+import db.DbIntegrityException;
+import entities.Livro;
+
+public class LivroDAO {
+
+	/*
+	 * Inserção de livros (CREATE)
+	 */
+	public static void inserir(Livro livro) {
+		String sql = "INSERT INTO livros (titulo, autor, data_publicacao, quantidade_estoque) VALUES (?, ?, ?, ?)";
+		try (Connection conn = DB.getConnection();
+				PreparedStatement st = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+			System.out.println("==== INSERINDO NOVO LIVRO ====");
+
+			st.setString(1, livro.getTitulo());
+			st.setString(2, livro.getAutor());
+			st.setDate(3, Date.valueOf(livro.getDataPublicacao()));
+			st.setInt(4, livro.getQuantidadeEstoque());
+
+			int rowsAffected = st.executeUpdate();
+
+			if (rowsAffected > 0) {
+				try (ResultSet rs = st.getGeneratedKeys()) {
+					while (rs.next()) {
+						System.out.println("Livro inserido! Id = " + rs.getInt(1));
+					}
+				}
+			} else {
+				System.out.println("Nenhum livro inserido!");
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/*
+	 * Código para Recuperar Dados (READ)
+	 */
+	public static List<Livro> listarLivros() {
+		String sql = "SELECT * FROM livros";
+		List<Livro> lista = new ArrayList<>();
+		try (Connection conn = DB.getConnection();
+				PreparedStatement st = conn.prepareStatement(sql);
+				ResultSet rs = st.executeQuery()) {
+
+			System.out.println("==== LISTANDO LIVROS ====");
+
+			while (rs.next()) {
+				Livro livro = new Livro();
+				livro.setId(rs.getInt("id_livro"));
+				livro.setTitulo(rs.getString("titulo"));
+				livro.setAutor(rs.getString("autor"));
+				livro.setDataPublicacao(rs.getDate("data_publicacao").toLocalDate());
+				livro.setQuantidadeEstoque(rs.getInt("quantidade_estoque"));
+
+				lista.add(livro);
+			}
+
+			System.out.println("Listagem concluída.\n");
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return lista;
+	}
+
+	/*
+	 * Atualizar dados (UPDATE)
+	 */
+	public static void atualizarEstoque(int idLivro, int novaQuantidade) {
+		String sql = "UPDATE livros SET quantidade_estoque = ? WHERE id_livro = ?";
+		try (Connection conn = DB.getConnection(); PreparedStatement st = conn.prepareStatement(sql)) {
+
+			System.out.println("==== ATUALIZANDO ESTOQUE DO LIVRO ====");
+
+			st.setInt(1, novaQuantidade);
+			st.setInt(2, idLivro);
+
+			int rowsAffected = st.executeUpdate();
+
+			if (rowsAffected > 0) {
+				System.out.println("Livro com ID " + idLivro + " atualizado com sucesso.");
+			} else {
+				System.out.println("Nenhum livro atualizado, ID informado não existe!");
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/*
+	 * Deletar dados (DELETE)
+	 */
+	public static void deletarPorId(int idLivro) {
+		String sql = "DELETE FROM livros WHERE id_livro = ?";
+		try (Connection conn = DB.getConnection(); PreparedStatement st = conn.prepareStatement(sql)) {
+
+			System.out.println("==== DELETANDO LIVRO ====");
+
+			st.setInt(1, idLivro);
+
+			int rowsAffected = st.executeUpdate();
+
+			if (rowsAffected > 0) {
+				System.out.println("Livro com ID " + idLivro + " deletado com sucesso.");
+			} else {
+				System.out.println("Nenhum livro deletado. ID não encontrado.");
+			}
+
+		} catch (SQLException e) {
+			throw new DbIntegrityException("Erro ao tentar deletar o livro: " + e.getMessage());
+		}
+	}
+}

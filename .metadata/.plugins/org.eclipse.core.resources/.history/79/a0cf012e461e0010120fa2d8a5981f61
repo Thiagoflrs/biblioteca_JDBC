@@ -1,0 +1,191 @@
+package application;
+
+import java.util.Scanner;
+
+import dao.AlunoDAO;
+import dao.LivroDAO;
+import dao.EmprestimoDAO;
+
+public class Program {
+
+    public static void main(String[] args) {
+
+        Scanner sc = new Scanner(System.in);
+        int opcao;
+
+        do {
+            System.out.println("\n===== MENU PRINCIPAL =====");
+            System.out.println("1 - Menu de Alunos");
+            System.out.println("2 - Menu de Livros");
+            System.out.println("3 - Menu de Empréstimos");
+            System.out.println("0 - Sair");
+            System.out.print("Escolha uma opção: ");
+            opcao = sc.nextInt();
+
+            switch (opcao) {
+                case 1:
+                    menuAlunos(sc);
+                    break;
+
+                case 2:
+                    menuLivros(sc);
+                    break;
+
+                case 3:
+                    menuEmprestimos(sc);
+                    break;
+
+                case 0:
+                    System.out.println("Encerrando sistema.");
+                    break;
+
+                default:
+                    System.out.println("Opção inválida. Tente novamente.");
+            }
+
+        } while (opcao != 0);
+
+        sc.close();
+    }
+
+    // Menu de Alunos
+    public static void menuAlunos(Scanner sc) {
+        int opcaoAluno;
+
+        do {
+            System.out.println("\n===== MENU DE ALUNOS =====");
+            System.out.println("1 - Cadastrar Aluno");
+            System.out.println("2 - Remover Aluno");
+            System.out.println("3 - Atualizar Aluno");
+            System.out.println("4 - Listar Alunos");
+            System.out.println("0 - Voltar");
+            System.out.print("Escolha uma opção: ");
+            opcaoAluno = sc.nextInt();
+
+            switch (opcaoAluno) {
+                case 1:
+                    // Cadastrar aluno (implementar o método de cadastro no AlunoDAO)
+                    break;
+                case 2:
+                    // Remover aluno (implementar o método de remoção no AlunoDAO)
+                    break;
+                case 3:
+                    // Atualizar aluno (implementar o método de atualização no AlunoDAO)
+                    break;
+                case 4:
+                    // Listar alunos
+                    try {
+                        AlunoDAO.listarAlunos(); // Verifique se esse método pode lançar SQLException
+                    } catch (Exception e) {
+                        System.out.println("Erro ao acessar dados de alunos: " + e.getMessage());
+                    }
+                    break;
+                case 0:
+                    System.out.println("Voltando ao menu principal.");
+                    break;
+                default:
+                    System.out.println("Opção inválida. Tente novamente.");
+            }
+
+        } while (opcaoAluno != 0);
+    }
+
+    // Menu de Livros
+    public static void menuLivros(Scanner sc) {
+        int opcaoLivro;
+
+        do {
+            System.out.println("\n===== MENU DE LIVROS =====");
+            System.out.println("1 - Cadastrar Livro");
+            System.out.println("2 - Remover Livro");
+            System.out.println("3 - Atualizar Livro");
+            System.out.println("4 - Listar Livros");
+            System.out.println("0 - Voltar");
+            System.out.print("Escolha uma opção: ");
+            opcaoLivro = sc.nextInt();
+
+            switch (opcaoLivro) {
+                case 1:
+                    // Cadastrar livro (implementar o método de cadastro no LivroDAO)
+                    break;
+                case 2:
+                    // Remover livro (implementar o método de remoção no LivroDAO)
+                    break;
+                case 3:
+                    // Atualizar livro (implementar o método de atualização no LivroDAO)
+                    break;
+                case 4:
+                    // Listar livros
+                    try {
+                        LivroDAO.listarLivros(); // Verifique se esse método pode lançar SQLException
+                    } catch (Exception e) {
+                        System.out.println("Erro ao acessar dados de livros: " + e.getMessage());
+                    }
+                    break;
+                case 0:
+                    System.out.println("Voltando ao menu principal.");
+                    break;
+                default:
+                    System.out.println("Opção inválida. Tente novamente.");
+            }
+
+        } while (opcaoLivro != 0);
+    }
+
+    // Menu de Empréstimos
+    public static void menuEmprestimos(Scanner sc) {
+        int opcaoEmprestimo;
+
+        do {
+            System.out.println("\n===== MENU DE EMPRÉSTIMOS =====");
+            System.out.println("1 - Registrar Empréstimo");
+            System.out.println("2 - Devolver Livro");
+            System.out.println("3 - Listar Empréstimos Ativos por Aluno");
+            System.out.println("0 - Voltar");
+            System.out.print("Escolha uma opção: ");
+            opcaoEmprestimo = sc.nextInt();
+
+            switch (opcaoEmprestimo) {
+                case 1:
+                    System.out.print("ID do Aluno: ");
+                    int idAluno = sc.nextInt();
+                    System.out.print("ID do Livro: ");
+                    int idLivro = sc.nextInt();
+                    try {
+                        EmprestimoDAO.registrarEmprestimo(idAluno, idLivro);
+                    } catch (Exception e) {
+                        System.out.println("Erro ao registrar empréstimo: " + e.getMessage());
+                    }
+                    break;
+
+                case 2:
+                    System.out.print("ID do Empréstimo: ");
+                    int idEmprestimo = sc.nextInt();
+                    try {
+                        EmprestimoDAO.devolverLivro(idEmprestimo);
+                    } catch (Exception e) {
+                        System.out.println("Erro ao devolver livro: " + e.getMessage());
+                    }
+                    break;
+
+                case 3:
+                    System.out.print("ID do Aluno: ");
+                    int alunoConsulta = sc.nextInt();
+                    try {
+                        EmprestimoDAO.listarEmprestimosAtivosPorAluno(alunoConsulta);
+                    } catch (Exception e) {
+                        System.out.println("Erro ao listar empréstimos: " + e.getMessage());
+                    }
+                    break;
+
+                case 0:
+                    System.out.println("Voltando ao menu principal.");
+                    break;
+
+                default:
+                    System.out.println("Opção inválida. Tente novamente.");
+            }
+
+        } while (opcaoEmprestimo != 0);
+    }
+}

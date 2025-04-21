@@ -1,0 +1,30 @@
+package application;
+
+public class Program {
+
+	public static void main(String[] args) {
+		
+	}
+}
+
+/*
+*
+try {
+			AlunoDAO alunoDAO = new AlunoDAO();
+			LivroDAO livroDAO = new LivroDAO();
+
+			Aluno aluno = new Aluno("Euclides Rocha", "2425963", "1992/06/22", "Engenharia da Computação");
+			alunoDAO.inserir(aluno);
+
+			livroDAO.lerTodos();
+			livroDAO.atualizarEstoque(10, 12);
+
+			alunoDAO.deletarPorId(8);
+
+		} catch (ParseException e) {
+			System.out.println("Erro de data: " + e.getMessage());
+		} finally {
+			DB.closeConnection();
+		}
+
+*/

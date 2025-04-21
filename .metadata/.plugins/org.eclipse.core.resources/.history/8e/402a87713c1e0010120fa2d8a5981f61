@@ -1,0 +1,37 @@
+package application;
+
+import java.time.LocalDate;
+import java.util.List;
+
+import dao.AlunoDAO;
+import dao.LivroDAO;
+import model.Aluno;
+import model.Livro;
+
+public class Program {
+    public static void main(String[] args) {
+        // CRUD para Alunos
+        System.out.println("==== CRUD ALUNO ====");
+        Aluno novoAluno = new Aluno(null, "Carlos Silva", "202312345", LocalDate.of(2000, 5, 10), "Engenharia");
+        AlunoDAO.inserir(novoAluno);
+        List<Aluno> alunos = AlunoDAO.listar();
+        alunos.forEach(System.out::println);
+
+        if (!alunos.isEmpty()) {
+            Aluno alunoAtualizar = alunos.get(0);
+            alunoAtualizar.setCurso("Sistemas de Informação");
+            AlunoDAO.atualizar(alunoAtualizar);
+        }
+
+        if (!alunos.isEmpty()) {
+            int idDeletar = alunos.get(alunos.size() - 1).getId();
+            AlunoDAO.deletarPorId(idDeletar);
+        }
+
+        // CRUD para Livros
+        System.out.println("\n==== CRUD LIVRO ====");
+        Livro novoLivro = new Livro(null, "Clean Code", "Robert C. Martin", LocalDate.of(2008, 8, 1), 10);
+        LivroDAO.inserir(novoLivro);
+        LivroDAO.atualizarEstoque(novoLivro.getId(), 5); // Atualiza o estoque do livro
+    }
+}

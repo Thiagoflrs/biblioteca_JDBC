@@ -1,0 +1,72 @@
+package application;
+
+import java.time.LocalDate;
+import java.util.List;
+
+import dao.AlunoDAO;
+import dao.LivroDAO;
+import db.DB;
+import entities.Aluno;
+import entities.Livro;
+
+public class Program {
+
+	public static void main(String[] args) {
+
+		try {
+			// ===== ALUNO =====
+			System.out.println("==== CRUD ALUNO ====");
+
+			// Criando aluno
+			Aluno novoAluno = new Aluno(null, "Carlos Silva", "202312345", LocalDate.of(2000, 5, 10), "Engenharia");
+			AlunoDAO.inserir(novoAluno);
+
+			// Listando alunos
+			List<Aluno> alunos = AlunoDAO.listar();
+			alunos.forEach(System.out::println);
+
+			// Atualizando aluno
+			if (!alunos.isEmpty()) {
+				Aluno alunoAtualizar = alunos.get(0);
+				alunoAtualizar.setCurso("Sistemas de Informação");
+				AlunoDAO.atualizar(alunoAtualizar);
+			}
+
+			// Deletando aluno (exemplo com último aluno inserido)
+			if (!alunos.isEmpty()) {
+				int idDeletar = alunos.get(alunos.size() - 1).getId();
+				AlunoDAO.deletarPorId(idDeletar);
+			}
+
+			// ===== LIVRO =====
+			System.out.println("\n==== CRUD LIVRO ====");
+
+			// Criando livro
+			Livro novoLivro = new Livro(null, "Clean Code", "Robert C. Martin", LocalDate.of(2008, 8, 1), 10);
+			LivroDAO.inserir(novoLivro);
+
+			// Listando livros
+			List<Livro> livros = LivroDAO.listarLivros();
+			livros.forEach(System.out::println);
+
+			// Atualizando estoque de livro
+			if (!livros.isEmpty()) {
+				int idLivro = livros.get(0).getId();
+				LivroDAO.atualizarEstoque(idLivro, 20);
+			}
+
+			// Deletando livro (exemplo com último livro inserido)
+			if (!livros.isEmpty()) {
+				int idDeletarLivro = livros.get(livros.size() - 1).getId();
+				LivroDAO.deletarPorId(idDeletarLivro);
+			}
+
+		} catch (Exception e) {
+			System.out.println("Erro: " + e.getMessage());
+			e.printStackTrace();
+		} finally {
+			// Fecha conexão com banco de dados
+			DB.closeConnection();
+		}
+	}
+}
