@@ -21,9 +21,9 @@ CREATE TABLE Livros (
 
 CREATE TABLE Emprestimos (
     id_emprestimo INT AUTO_INCREMENT PRIMARY KEY,
-    id_aluno INT,
-    id_livro INT,
-    data_emprestimo DATE DEFAULT (CURRENT_DATE),
+    id_aluno INT NOT NULL,
+    id_livro INT NOT NULL,
+    data_emprestimo DATE DEFAULT CURRENT_DATE,
     data_devolucao DATE,
     data_devolucao_real DATE DEFAULT CURRENT_DATE,
     valor_multa DECIMAL(10,2),
@@ -31,17 +31,24 @@ CREATE TABLE Emprestimos (
     FOREIGN KEY (id_livro) REFERENCES Livros(id_livro)
 );
 
-CREATE TABLE RelatorioEmprestimos (
-    id_relatorio INT AUTO_INCREMENT PRIMARY KEY,
-    id_aluno INT,
-    id_livro INT,
-    data_emprestimo DATE DEFAULT (CURRENT_DATE),
-    data_devolucao_prevista DATE,
-    data_devolucao_real DATE DEFAULT CURRENT_DATE,
-    valor_multa DECIMAL(10,2),
-    FOREIGN KEY (id_aluno) REFERENCES Alunos(id_aluno),
-    FOREIGN KEY (id_livro) REFERENCES Livros(id_livro)
-);
+CREATE VIEW RelatorioEmprestimos AS
+SELECT 
+    e.id_emprestimo AS id_relatorio,
+    a.id_aluno,
+    a.nome_aluno,
+    l.id_livro,
+    l.titulo,
+    e.data_emprestimo,
+    e.data_devolucao,
+    e.data_devolucao_real,
+    e.valor_multa
+FROM 
+    Emprestimos e
+INNER JOIN 
+    Alunos a ON e.id_aluno = a.id_aluno
+INNER JOIN 
+    Livros l ON e.id_livro = l.id_livro;
+
 
 -- INSERÇÃO DE ALUNOS
 INSERT INTO Alunos (nome_aluno, matricula, data_nascimento, curso) VALUES
