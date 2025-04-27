@@ -152,36 +152,4 @@ public class AlunoDAO {
             throw new DbIntegrityException("Erro ao tentar deletar o aluno: " + e.getMessage());
         }
     }
-    
-    /*
-	 * Buscar aluno por ID
-	 */
-    public static Aluno buscarPorId(int idAluno) {
-        String sql = "SELECT * FROM alunos WHERE id_aluno = ?";
-        Aluno aluno = null;
-
-        try (Connection conn = DB.getConnection();
-             PreparedStatement st = conn.prepareStatement(sql)) {
-
-            st.setInt(1, idAluno);
-            ResultSet rs = st.executeQuery();
-
-            if (rs.next()) {
-                aluno = new Aluno();
-                aluno.setId(rs.getInt("id_aluno"));
-                aluno.setNome(rs.getString("nome_aluno"));
-                aluno.setMatricula(rs.getString("matricula"));
-                aluno.setDataNascimento(rs.getDate("data_nascimento").toLocalDate());
-                aluno.setCurso(rs.getString("curso"));
-            }
-
-            DB.closeResultSet(rs);
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return aluno;
-    }
-
 }

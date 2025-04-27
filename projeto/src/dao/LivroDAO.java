@@ -98,33 +98,35 @@ public class LivroDAO {
     /*
      * Atualizar dados (UPDATE)
      */
-    public static void atualizarEstoque(int idLivro, int novaQuantidade) {
-        // SQL para atualizar a quantidade de estoque de um livro
-        String sql = "UPDATE livros SET quantidade_estoque = ? WHERE id_livro = ?";
+    public static void atualizarLivro(Livro livro) {
+        // SQL para atualizar os dados de um livro
+        String sql = "UPDATE livros SET titulo = ?, autor = ?, ano_publicacao = ?, quantidade_estoque = ? WHERE id_livro = ?";
         System.out.println();
-        System.out.println("==== ATUALIZANDO ESTOQUE DO LIVRO ====");
-
+        System.out.println("==== ATUALIZANDO DADOS DO ALUNO ====");
+        
         // Utilizando try-with-resources para garantir o fechamento da conexão e PreparedStatement
-        try (Connection conn = DB.getConnection(); PreparedStatement st = conn.prepareStatement(sql)) {
-
+        try (Connection conn = DB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
             // Define os parâmetros para a consulta SQL
-            st.setInt(1, novaQuantidade);  // Novo valor de estoque
-            st.setInt(2, idLivro);  // ID do livro a ser atualizado
-
-            // Executa a atualização e verifica quantas linhas foram afetadas
-            int rowsAffected = st.executeUpdate();
-
+            stmt.setString(1, livro.getTitulo());
+            stmt.setString(2, livro.getAutor());
+            stmt.setInt(3, livro.getAnoPublicacao());
+            stmt.setInt(4, livro.getQuantidadeEstoque());
+            stmt.setInt(5, livro.getId());  // ID do livro que será atualizado
+            
+            // Executa a atualização
+            int rowsAffected = stmt.executeUpdate();
+            
+            // Verifica se a atualização foi realizada
             if (rowsAffected > 0) {
-                System.out.println("Livro com ID " + idLivro + " atualizado com sucesso.");
+                System.out.println("Livro com ID " + livro.getId() + " atualizado com sucesso.");
             } else {
-                System.out.println("Nenhum livro atualizado, ID informado não existe!");
+                System.out.println("Nenhum livro encontrado com o ID informado.");
             }
             
-            // Quebra de linha para melhorar a leitura no console
-            System.out.println();
-
         } catch (SQLException e) {
-            e.printStackTrace();  // Em caso de erro, imprime o erro
+            e.printStackTrace();
         }
     }
 
@@ -158,34 +160,4 @@ public class LivroDAO {
             throw new DbIntegrityException("Erro ao tentar deletar o livro: " + e.getMessage());
         }
     }
-    
-    // Buscar livro porId
-    public static Livro buscarPorId(int idLivro) {
-        String sql = "SELECT * FROM livros WHERE id_livro = ?";
-        Livro livro = null;
-
-        try (Connection conn = DB.getConnection();
-             PreparedStatement st = conn.prepareStatement(sql)) {
-
-            st.setInt(1, idLivro);
-            ResultSet rs = st.executeQuery();
-
-            if (rs.next()) {
-                livro = new Livro();
-                livro.setId(rs.getInt("id_livro"));
-                livro.setTitulo(rs.getString("titulo"));
-                livro.setAutor(rs.getString("autor"));
-                livro.setAnoPublicacao(rs.getInt("ano_publicacao"));
-                livro.setQuantidadeEstoque(rs.getInt("quantidade_estoque"));
-            }
-
-            DB.closeResultSet(rs);
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return livro;
-    }
-
 }
