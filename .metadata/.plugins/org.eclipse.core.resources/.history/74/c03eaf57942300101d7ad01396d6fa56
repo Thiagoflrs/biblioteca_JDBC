@@ -44,7 +44,7 @@ public class Program {
                         break;
                         
                     case 4:
-                        listarRelatorioEmprestimosConcluidos();  // Opção para listar empréstimos concluídos
+                        listarRelatorioEmprestimosConcluidos(sc);  // Opção para listar empréstimos concluídos
                         break;
 
                     case 5:
@@ -70,8 +70,11 @@ public class Program {
         sc.close();
     }
     
-    public static void listarRelatorioEmprestimosConcluidos() throws SQLException {
-        EmprestimoDAO.listarRelatorioEmprestimosConcluidos(); 
+    // Método para listar os relatórios de empréstimos concluídos
+    public static void listarRelatorioEmprestimosConcluidos(Scanner sc) throws SQLException {
+        System.out.print("ID do Aluno: ");
+        int idAluno = sc.nextInt();
+        EmprestimoDAO.listarRelatorioEmprestimosConcluidos(idAluno);  // Chama o método ajustado
     }
 
     // Registrar Empréstimo
