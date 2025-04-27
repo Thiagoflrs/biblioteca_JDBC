@@ -182,12 +182,10 @@ public class EmprestimoDAO {
     // Método para listar os relatórios de empréstimos
     public static void listarRelatorioEmprestimosConcluidos() throws SQLException {
         String sql = """
-                SELECT a.nome_aluno, l.titulo, e.data_emprestimo, e.data_devolucao_prevista, e.data_devolucao_real, e.valor_multa
-                FROM relatorioemprestimos e
-                JOIN Livros l ON e.id_livro = l.id_livro
-                JOIN Alunos a ON e.id_aluno = a.id_aluno
-                WHERE e.data_devolucao_real IS NOT NULL
-                """;
+            SELECT nome_aluno, titulo, data_emprestimo, data_devolucao, data_devolucao_real, valor_multa
+            FROM RelatorioEmprestimos
+            WHERE data_devolucao_real IS NOT NULL
+            """;
 
         try (Connection conn = DB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
