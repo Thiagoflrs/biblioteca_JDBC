@@ -1,0 +1,31 @@
+package dao;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
+import util.DB;
+
+public class EmprestimoDAO {
+
+	public static void registrarEmprestimo (int idAluno, int idLivro) {
+		
+		try (Connection conn = DB.getConnection()) {
+			 conn.setAutoCommit(false);
+			 
+			 try (PreparedStatement st = conn.prepareStatement("sql")) {
+				 st.setInt(1, idAluno);
+				 st.setInt(2, idLivro);
+				 st.executeUpdate();
+		     	
+				 conn.commit(); // Confirma a transação
+		         System.out.println("==== EMPRÉSTIMO ====");
+		} catch (SQLException e) {
+			conn.rollback();
+			throw e;
+		}
+		} catch (SQLException e) {
+            e.printStackTrace(); 
+        }
+	}
+}
