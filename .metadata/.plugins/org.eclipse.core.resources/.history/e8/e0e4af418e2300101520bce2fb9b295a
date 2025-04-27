@@ -71,6 +71,9 @@ public class LivroDAO {
              PreparedStatement st = conn.prepareStatement(sql);
              ResultSet rs = st.executeQuery()) {
 
+            // Exibe uma mensagem indicando que a listagem de livros começou
+            System.out.println("==== LISTANDO LIVROS ====");
+
             // Itera sobre o ResultSet e cria um objeto Livro para cada registro
             while (rs.next()) {
                 Livro livro = new Livro();
@@ -139,6 +142,9 @@ public class LivroDAO {
         
         // Utilizando try-with-resources para garantir o fechamento da conexão e PreparedStatement
         try (Connection conn = DB.getConnection(); PreparedStatement st = conn.prepareStatement(sql)) {
+
+            // Exibe uma mensagem indicando que o livro será deletado
+            System.out.println("==== DELETANDO LIVRO ====");
 
             // Define o parâmetro para a consulta SQL
             st.setInt(1, idLivro);  // ID do livro a ser deletado

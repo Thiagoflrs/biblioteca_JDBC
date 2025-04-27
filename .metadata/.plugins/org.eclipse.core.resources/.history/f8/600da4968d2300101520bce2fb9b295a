@@ -20,12 +20,13 @@ public class LivroDAO {
     public static void inserir(Livro livro) {
         // SQL para inserir um novo livro na tabela 'livros'
         String sql = "INSERT INTO livros (titulo, autor, ano_publicacao, quantidade_estoque) VALUES (?, ?, ?, ?)";
-        System.out.println();
-        System.out.println("==== INSERINDO NOVO LIVRO ====");
         
         // Utilizando try-with-resources para garantir o fechamento da conexão, PreparedStatement e ResultSet
         try (Connection conn = DB.getConnection();
              PreparedStatement st = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+            // Exibe uma mensagem indicando o início da inserção
+            System.out.println("==== INSERINDO NOVO LIVRO ====");
 
             // Define os valores que serão inseridos na consulta SQL
             st.setString(1, livro.getTitulo());
@@ -63,13 +64,14 @@ public class LivroDAO {
         // SQL para selecionar todos os livros da tabela 'livros'
         String sql = "SELECT * FROM livros";
         List<Livro> lista = new ArrayList<>();  // Lista para armazenar os livros
-        System.out.println();
-        System.out.println("==== LISTANDO LIVROS ====");
-        
+
         // Utilizando try-with-resources para garantir o fechamento da conexão, PreparedStatement e ResultSet
         try (Connection conn = DB.getConnection();
              PreparedStatement st = conn.prepareStatement(sql);
              ResultSet rs = st.executeQuery()) {
+
+            // Exibe uma mensagem indicando que a listagem de livros começou
+            System.out.println("==== LISTANDO LIVROS ====");
 
             // Itera sobre o ResultSet e cria um objeto Livro para cada registro
             while (rs.next()) {
@@ -100,7 +102,7 @@ public class LivroDAO {
         // SQL para atualizar os dados de um livro
         String sql = "UPDATE livros SET titulo = ?, autor = ?, ano_publicacao = ?, quantidade_estoque = ? WHERE id_livro = ?";
         System.out.println();
-        System.out.println("==== ATUALIZANDO DADOS DO LIVRO ====");
+        System.out.println("==== ATUALIZANDO DADOS DO ALUNO ====");
         
         // Utilizando try-with-resources para garantir o fechamento da conexão e PreparedStatement
         try (Connection conn = DB.getConnection();
@@ -134,11 +136,12 @@ public class LivroDAO {
     public static void deletarPorId(int idLivro) {
         // SQL para deletar um livro com base no ID
         String sql = "DELETE FROM livros WHERE id_livro = ?";
-        System.out.println();
-        System.out.println("==== DELETANDO LIVRO ====");
-        
+
         // Utilizando try-with-resources para garantir o fechamento da conexão e PreparedStatement
         try (Connection conn = DB.getConnection(); PreparedStatement st = conn.prepareStatement(sql)) {
+
+            // Exibe uma mensagem indicando que o livro será deletado
+            System.out.println("==== DELETANDO LIVRO ====");
 
             // Define o parâmetro para a consulta SQL
             st.setInt(1, idLivro);  // ID do livro a ser deletado

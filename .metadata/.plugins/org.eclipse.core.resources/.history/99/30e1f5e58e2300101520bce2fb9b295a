@@ -205,6 +205,7 @@ public class Program {
 
                     // Atualizando o livro sem necessidade de try-catch
                     LivroDAO.atualizarLivro(livroAtualizado);
+                    System.out.println("Livro atualizado com sucesso!");
                     break;
 
                 case 4:

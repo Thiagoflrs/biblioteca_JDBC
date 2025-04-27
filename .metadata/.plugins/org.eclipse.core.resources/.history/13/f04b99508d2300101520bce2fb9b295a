@@ -19,7 +19,7 @@ public class AlunoDAO {
      */
     public static void inserir(Aluno aluno) {
         String sql = "INSERT INTO alunos (nome_aluno, matricula, data_nascimento, curso) VALUES (?, ?, ?, ?)";
-        System.out.println();
+
         System.out.println("==== INSERINDO NOVO ALUNO ====");
 
         // try-with-resources: fecha conexão e statement automaticamente
@@ -60,7 +60,7 @@ public class AlunoDAO {
     public static List<Aluno> listarAlunos() {
         String sql = "SELECT * FROM alunos"; // Consulta SQL para selecionar todos os alunos
         List<Aluno> lista = new ArrayList<>(); // Lista que irá armazenar os alunos recuperados
-        System.out.println();
+
         System.out.println("==== LISTANDO ALUNOS ====");
 
         // try-with-resources para garantir fechamento automático
@@ -129,7 +129,7 @@ public class AlunoDAO {
      */
     public static void deletarPorId(int idAluno) {
         String sql = "DELETE FROM alunos WHERE id_aluno = ?";
-        System.out.println();
+
         System.out.println("==== DELETANDO ALUNO ====");
 
         // Deleta o aluno com base no ID
