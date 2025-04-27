@@ -39,11 +39,9 @@ A proposta consiste no desenvolvimento de um **sistema em Java com interface em 
 - ✅ Cadastro de Livros  
 - ✅ Empréstimos com validação de:
   - Disponibilidade em estoque
-  - Limite de 3 livros por aluno
 - ✅ Devoluções com:
-  - Validação de prazo (30 dias)
+  - Validação de prazo (7 dias)
   - Cálculo de multa (R$3 por dia de atraso)
-- ✅ Atualização e remoção de registros
 - ✅ Relatórios básicos de movimentação e histórico de empréstimos
 - ✅ Controle automático de estoque
 
