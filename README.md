@@ -42,7 +42,7 @@ A proposta consiste no desenvolvimento de um **sistema em Java com interface em 
 - ✅ Devoluções com:
   - Validação de prazo (7 dias)
   - Cálculo de multa (R$3 por dia de atraso)
-- ✅ Relatórios básicos de movimentação e histórico de empréstimos
+- ✅ Relatórios básicos de histórico de empréstimos
 - ✅ Controle automático de estoque
 
 ---
