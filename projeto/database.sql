@@ -1,3 +1,49 @@
+-- CRIAÇÃO BANCO DE DADOS
+CREATE DATABASE IF NOT EXISTS biblioteca;
+USE biblioteca;
+
+-- CRIAÇÃO DE TABELAS E COLUNAS
+CREATE TABLE Alunos (
+    id_aluno INT AUTO_INCREMENT PRIMARY KEY,
+    nome_aluno VARCHAR(100) NOT NULL,
+    matricula VARCHAR(20) UNIQUE,
+    data_nascimento DATE,
+    curso VARCHAR(150) NOT NULL
+);
+
+CREATE TABLE Livros (
+    id_livro INT AUTO_INCREMENT PRIMARY KEY,
+    titulo VARCHAR(150) NOT NULL,
+    autor VARCHAR(100),
+    ano_publicacao INT,
+    quantidade_estoque INT DEFAULT 0
+);
+
+CREATE TABLE Emprestimos (
+    id_emprestimo INT AUTO_INCREMENT PRIMARY KEY,
+    id_aluno INT,
+    id_livro INT,
+    data_emprestimo DATE DEFAULT (CURRENT_DATE),
+    data_devolucao DATE,
+    data_devolucao_real DATE DEFAULT CURRENT_DATE,
+    valor_multa DECIMAL(10,2),
+    FOREIGN KEY (id_aluno) REFERENCES Alunos(id_aluno),
+    FOREIGN KEY (id_livro) REFERENCES Livros(id_livro)
+);
+
+CREATE TABLE RelatorioEmprestimos (
+    id_relatorio INT AUTO_INCREMENT PRIMARY KEY,
+    id_aluno INT,
+    id_livro INT,
+    data_emprestimo DATE DEFAULT (CURRENT_DATE),
+    data_devolucao_prevista DATE,
+    data_devolucao_real DATE DEFAULT CURRENT_DATE,
+    valor_multa DECIMAL(10,2),
+    FOREIGN KEY (id_aluno) REFERENCES Alunos(id_aluno),
+    FOREIGN KEY (id_livro) REFERENCES Livros(id_livro)
+);
+
+-- INSERÇÃO DE ALUNOS
 INSERT INTO Alunos (nome_aluno, matricula, data_nascimento, curso) VALUES
 ('Anderson Benevides Castro', '2427265', '1998-04-15', 'Análise e Desenvolvimento de Sistemas'),
 ('André Luís Lima de Oliveira', '2425200', '1992-08-14', 'Análise e Desenvolvimento de Sistemas'),
@@ -6,6 +52,7 @@ INSERT INTO Alunos (nome_aluno, matricula, data_nascimento, curso) VALUES
 ('Thiago Felipe Lopes Rodrigues', '2425055', '2000-10-02', 'Análise e Desenvolvimento de Sistemas'),
 ('Ytalo Ravir Freitas Vasconcelos', '2425167', '1998-06-05', 'Análise e Desenvolvimento de Sistemas');
 
+-- INSERÇÃO DE LIVROS
 INSERT INTO Livros (titulo, autor, ano_publicacao, quantidade_estoque) VALUES
 ('Código Limpo', 'Robert C. Martin', 2008, 5),
 ('O Programador Pragmático', 'Andrew Hunt e David Thomas', 1999, 3),
