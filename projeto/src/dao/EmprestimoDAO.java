@@ -10,81 +10,109 @@ import util.DB;
 
 public class EmprestimoDAO {
 
-    // Método para registrar um novo empréstimo
-    public static void registrarEmprestimo(int idAluno, int idLivro) throws SQLException {
-        String verificaAluno = "SELECT id_aluno FROM Alunos WHERE id_aluno = ?";
-        String verificaLivro = "SELECT quantidade_estoque FROM Livros WHERE id_livro = ?";
-        String atualizaEstoque = "UPDATE Livros SET quantidade_estoque = quantidade_estoque - 1 WHERE id_livro = ?";
-        String insereEmprestimo = "INSERT INTO Emprestimos (id_aluno, id_livro, data_emprestimo, data_devolucao, status) VALUES (?, ?, ?, ?, ?)";
+	// Método para registrar um novo empréstimo
+	public static void registrarEmprestimo(int idAluno, int idLivro) throws SQLException {
+	    // Comandos SQL utilizados
+	    String verificaAluno = "SELECT id_aluno FROM Alunos WHERE id_aluno = ?";
+	    String verificaLivro = "SELECT quantidade_estoque, quantidade_emprestada FROM Livros WHERE id_livro = ?";
+	    String atualizaEstoque = "UPDATE Livros SET quantidade_estoque = quantidade_estoque - 1, quantidade_emprestada = quantidade_emprestada + 1 WHERE id_livro = ?";
+	    String insereEmprestimo = "INSERT INTO Emprestimos (id_aluno, id_livro, data_emprestimo, data_devolucao, status) VALUES (?, ?, ?, ?, ?)";
 
-        try (Connection conn = DB.getConnection()) {
-            conn.setAutoCommit(false);
+	    try (Connection conn = DB.getConnection()) {
+	        conn.setAutoCommit(false); // Iniciando a transação manualmente
 
-            try (PreparedStatement stmt = conn.prepareStatement(verificaAluno)) {
-                stmt.setInt(1, idAluno);
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (!rs.next()) {
-                        conn.rollback();
-                        throw new SQLException("Aluno não encontrado.");
-                    }
-                }
-            }
+	        // Verifica se o aluno existe
+	        try (PreparedStatement stmt = conn.prepareStatement(verificaAluno)) {
+	            stmt.setInt(1, idAluno);
+	            try (ResultSet rs = stmt.executeQuery()) {
+	                if (!rs.next()) {
+	                    conn.rollback();
+	                    throw new SQLException("Aluno não encontrado.");
+	                }
+	            }
+	        }
 
-            int estoque = 0;
-            try (PreparedStatement stmt = conn.prepareStatement(verificaLivro)) {
-                stmt.setInt(1, idLivro);
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        estoque = rs.getInt("quantidade_estoque");
-                    } else {
-                        conn.rollback();
-                        throw new SQLException("Livro não encontrado.");
-                    }
-                }
-            }
+	        int estoque = 0;
 
-            if (estoque <= 0) {
-                conn.rollback();
-                throw new SQLException("Livro sem estoque disponível.");
-            }
+	        // Verifica se o livro existe e consulta o estoque e a quantidade emprestada
+	        try (PreparedStatement stmt = conn.prepareStatement(verificaLivro)) {
+	            stmt.setInt(1, idLivro);
+	            try (ResultSet rs = stmt.executeQuery()) {
+	                if (rs.next()) {
+	                    estoque = rs.getInt("quantidade_estoque");
+	                } else {
+	                    conn.rollback();
+	                    throw new SQLException("Livro não encontrado.");
+	                }
+	            }
+	        }
 
-            try (PreparedStatement stmt = conn.prepareStatement(atualizaEstoque)) {
-                stmt.setInt(1, idLivro);
-                stmt.executeUpdate();
-            }
+	        // Verifica se o livro está disponível
+	        if (estoque <= 0) {
+	            conn.rollback();
+	            throw new SQLException("Livro sem estoque disponível.");
+	        }
 
-            try (PreparedStatement stmt = conn.prepareStatement(insereEmprestimo)) {
-                stmt.setInt(1, idAluno);
-                stmt.setInt(2, idLivro);
-                stmt.setDate(3, Date.valueOf(LocalDate.now()));
-                stmt.setDate(4, Date.valueOf(LocalDate.now().plusDays(7)));
-                stmt.setString(5, "EM_ABERTO");
-                stmt.executeUpdate();
-            }
+	        // Atualiza o estoque do livro e a quantidade emprestada
+	        try (PreparedStatement stmt = conn.prepareStatement(atualizaEstoque)) {
+	            stmt.setInt(1, idLivro);
+	            stmt.executeUpdate();
+	        }
 
-            conn.commit();
-            System.out.println("Empréstimo registrado com sucesso!");
-        }
-    }
+	        // Insere o empréstimo na tabela
+	        try (PreparedStatement stmt = conn.prepareStatement(insereEmprestimo)) {
+	            stmt.setInt(1, idAluno);
+	            stmt.setInt(2, idLivro);
+	            stmt.setDate(3, Date.valueOf(LocalDate.now())); // Data atual
+	            stmt.setDate(4, Date.valueOf(LocalDate.now().plusDays(7))); // Devolução prevista para 7 dias
+	            stmt.setString(5, "EM_ABERTO"); // Status inicial
+	            stmt.executeUpdate();
+	        }
+
+	        conn.commit(); // Confirma todas as operações
+	        System.out.println("Empréstimo registrado com sucesso!");
+	    }
+	}
 
     // Método para registrar a devolução de um empréstimo
     public static void registrarDevolucao(int idEmprestimo) throws SQLException {
-        String buscaEmprestimo = "SELECT id_livro, data_devolucao FROM Emprestimos WHERE id_emprestimo = ?";
-        String atualizaEstoque = "UPDATE Livros SET quantidade_estoque = quantidade_estoque + 1 WHERE id_livro = ?";
-        String atualizaEmprestimo = "UPDATE Emprestimos SET data_devolucao_real = ?, valor_multa = ?, status = 'DEVOLVIDO' WHERE id_emprestimo = ?";
+        String buscaEmprestimo = """
+            SELECT e.id_livro, e.data_emprestimo, e.data_devolucao, a.id_aluno, a.nome_aluno, l.titulo
+            FROM Emprestimos e
+            INNER JOIN Alunos a ON e.id_aluno = a.id_aluno
+            INNER JOIN Livros l ON e.id_livro = l.id_livro
+            WHERE e.id_emprestimo = ?
+        """;
+        String atualizaEstoque = "UPDATE Livros SET quantidade_estoque = quantidade_estoque + 1, quantidade_emprestada = quantidade_emprestada - 1 WHERE id_livro = ?";
+        String insereRelatorio = """
+            INSERT INTO RelatorioEmprestimos 
+            (id_aluno, nome_aluno, id_livro, titulo, data_emprestimo, data_devolucao, data_devolucao_real, valor_multa, status) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """;
+        String excluiEmprestimo = "DELETE FROM Emprestimos WHERE id_emprestimo = ?";
+        String atualizaMultaEmprestimo = "UPDATE Emprestimos SET valor_multa = ? WHERE id_emprestimo = ?";
 
         try (Connection conn = DB.getConnection()) {
-            conn.setAutoCommit(false);
+            conn.setAutoCommit(false); // Início da transação
 
             int idLivro = -1;
-            LocalDate dataPrevista = null;
+            int idAluno = -1;
+            String nomeAluno = "";
+            String tituloLivro = "";
+            LocalDate dataEmprestimo = null;
+            LocalDate dataDevolucao = null;
 
+            // Busca o empréstimo pelo id
             try (PreparedStatement stmt = conn.prepareStatement(buscaEmprestimo)) {
                 stmt.setInt(1, idEmprestimo);
                 try (ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
                         idLivro = rs.getInt("id_livro");
-                        dataPrevista = rs.getDate("data_devolucao").toLocalDate();
+                        idAluno = rs.getInt("id_aluno");
+                        nomeAluno = rs.getString("nome_aluno");
+                        tituloLivro = rs.getString("titulo");
+                        dataEmprestimo = rs.getDate("data_emprestimo").toLocalDate();
+                        dataDevolucao = rs.getDate("data_devolucao").toLocalDate();
                     } else {
                         conn.rollback();
                         throw new SQLException("Empréstimo não encontrado.");
@@ -92,22 +120,44 @@ public class EmprestimoDAO {
                 }
             }
 
+            // Atualiza o estoque do livro
             try (PreparedStatement stmt = conn.prepareStatement(atualizaEstoque)) {
                 stmt.setInt(1, idLivro);
                 stmt.executeUpdate();
             }
 
+            // Calcula a multa, se houver atraso
             LocalDate dataDevolvida = LocalDate.now();
-            double multa = calcularMulta(dataPrevista, dataDevolvida);
+            double multa = calcularMulta(dataDevolucao, dataDevolvida);
 
-            try (PreparedStatement stmt = conn.prepareStatement(atualizaEmprestimo)) {
-                stmt.setDate(1, Date.valueOf(dataDevolvida));
-                stmt.setDouble(2, multa);
-                stmt.setInt(3, idEmprestimo);
+            // Insere as informações no Relatório de Empréstimos
+            try (PreparedStatement stmt = conn.prepareStatement(insereRelatorio)) {
+                stmt.setInt(1, idAluno);
+                stmt.setString(2, nomeAluno);
+                stmt.setInt(3, idLivro);
+                stmt.setString(4, tituloLivro);
+                stmt.setDate(5, Date.valueOf(dataEmprestimo));
+                stmt.setDate(6, Date.valueOf(dataDevolucao));
+                stmt.setDate(7, Date.valueOf(dataDevolvida));
+                stmt.setDouble(8, multa);
+                stmt.setString(9, "DEVOLVIDO");
                 stmt.executeUpdate();
             }
 
-            conn.commit();
+            // Atualiza a multa na tabela Emprestimos
+            try (PreparedStatement stmt = conn.prepareStatement(atualizaMultaEmprestimo)) {
+                stmt.setDouble(1, multa);
+                stmt.setInt(2, idEmprestimo);
+                stmt.executeUpdate();
+            }
+
+            // Exclui o empréstimo original
+            try (PreparedStatement stmt = conn.prepareStatement(excluiEmprestimo)) {
+                stmt.setInt(1, idEmprestimo);
+                stmt.executeUpdate();
+            }
+
+            conn.commit(); // Finaliza a transação
 
             if (multa > 0) {
                 System.out.println("Devolução atrasada. Multa aplicada: R$ " + multa);
@@ -117,20 +167,22 @@ public class EmprestimoDAO {
         }
     }
 
+    // Método para calcular multa por atraso
     private static double calcularMulta(LocalDate dataPrevista, LocalDate dataDevolvida) {
         if (dataDevolvida.isAfter(dataPrevista)) {
             long diasAtraso = java.time.temporal.ChronoUnit.DAYS.between(dataPrevista, dataDevolvida);
-            return diasAtraso * 3.0;
+            return diasAtraso * 3.0; // R$ 3 por dia de atraso
         }
-        return 0.0;
+        return 0.0; // Sem multa
     }
-
+    
+    // Método para listar alunos que têm multas pendentes
     public static void listarAlunosComMulta() throws SQLException {
         String sql = """
             SELECT a.nome_aluno, e.valor_multa
             FROM Emprestimos e
             JOIN Alunos a ON e.id_aluno = a.id_aluno
-            WHERE e.valor_multa > 0
+            WHERE e.valor_multa > 0 AND e.status != 'DEVOLVIDO'
         """;
 
         try (Connection conn = DB.getConnection();
@@ -153,6 +205,7 @@ public class EmprestimoDAO {
         }
     }
 
+    // Método para listar o relatório de empréstimos concluídos
     public static void listarRelatorioEmprestimosConcluidos() throws SQLException {
         String sql = """
             SELECT nome_aluno, titulo, data_emprestimo, data_devolucao, data_devolucao_real, valor_multa
@@ -185,5 +238,4 @@ public class EmprestimoDAO {
             }
         }
     }
-    
 }

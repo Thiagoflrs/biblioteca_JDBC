@@ -2,7 +2,7 @@
 CREATE DATABASE IF NOT EXISTS biblioteca;
 USE biblioteca;
 
--- CRIAÇÃO DE TABELAS E COLUNAS
+-- TABELA ALUNOS
 CREATE TABLE Alunos (
     id_aluno INT AUTO_INCREMENT PRIMARY KEY,
     nome_aluno VARCHAR(100) NOT NULL,
@@ -11,14 +11,17 @@ CREATE TABLE Alunos (
     curso VARCHAR(150) NOT NULL
 );
 
+-- TABELA LIVROS
 CREATE TABLE Livros (
     id_livro INT AUTO_INCREMENT PRIMARY KEY,
     titulo VARCHAR(150) NOT NULL,
     autor VARCHAR(100),
     ano_publicacao INT,
-    quantidade_estoque INT DEFAULT 0
+    quantidade_estoque INT DEFAULT 0,
+    quantidade_emprestada INT DEFAULT 0
 );
 
+-- TABELA EMPRESTIMOS
 CREATE TABLE Emprestimos (
     id_emprestimo INT AUTO_INCREMENT PRIMARY KEY,
     id_aluno INT NOT NULL,
@@ -27,30 +30,28 @@ CREATE TABLE Emprestimos (
     data_devolucao DATE,
     data_devolucao_real DATETIME DEFAULT NULL,
     valor_multa DECIMAL(10,2),
-    status VARCHAR(20) DEFAULT 'EM_ABERTO',  -- Adicionando a coluna de status
+    status VARCHAR(20) DEFAULT 'EM_ABERTO',
+    FOREIGN KEY (id_aluno) REFERENCES Alunos(id_aluno),
+    FOREIGN KEY (id_livro) REFERENCES Livros(id_livro),
+    CONSTRAINT chk_devolucao CHECK (data_devolucao_real >= data_emprestimo) 
+);
+
+-- TABELA RELATORIOEMPRESTIMOS
+CREATE TABLE RelatorioEmprestimos (
+    id_relatorio INT AUTO_INCREMENT PRIMARY KEY, 
+    id_aluno INT,
+    nome_aluno VARCHAR(100),
+    id_livro INT,
+    titulo VARCHAR(200),
+    data_emprestimo DATE,
+    data_devolucao DATE,
+    data_devolucao_real DATE,
+    valor_multa DECIMAL(10,2),
+    status VARCHAR(50),
     FOREIGN KEY (id_aluno) REFERENCES Alunos(id_aluno),
     FOREIGN KEY (id_livro) REFERENCES Livros(id_livro)
 );
 
--- CRIAÇÃO DO RELATÓRIO DE EMPRÉSTIMOS (VISÃO)
-CREATE VIEW RelatorioEmprestimos AS
-SELECT 
-    e.id_emprestimo AS id_relatorio,
-    a.id_aluno,
-    a.nome_aluno,
-    l.id_livro,
-    l.titulo,
-    e.data_emprestimo,
-    e.data_devolucao,
-    e.data_devolucao_real,
-    e.valor_multa,
-    e.status  -- Adicionando status no relatório
-FROM 
-    Emprestimos e
-INNER JOIN 
-    Alunos a ON e.id_aluno = a.id_aluno
-INNER JOIN 
-    Livros l ON e.id_livro = l.id_livro;
 
 -- INSERÇÃO DE ALUNOS
 INSERT INTO Alunos (nome_aluno, matricula, data_nascimento, curso) VALUES
@@ -83,3 +84,7 @@ INSERT INTO Livros (titulo, autor, ano_publicacao, quantidade_estoque) VALUES
 ('Machine Learning', 'Tom M. Mitchell', 1997, 3),
 ('Internet das Coisas com Arduino', 'Marco Schwartz', 2016, 4),
 ('Inteligência Artificial: Fundamentos', 'Stuart Russell e Peter Norvig', 2009, 2);
+
+-- CRIAÇÃO DE ÍNDICES
+CREATE INDEX idx_id_aluno ON Emprestimos(id_aluno);
+CREATE INDEX idx_id_livro ON Emprestimos(id_livro);
