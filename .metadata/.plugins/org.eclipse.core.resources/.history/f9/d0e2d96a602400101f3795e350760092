@@ -73,7 +73,7 @@ public class EmprestimoDAO {
         }
     }
 
-    // Método para registrar a devolução de um empréstimo
+ // Método para registrar a devolução de um empréstimo
     public static void registrarDevolucao(int idEmprestimo) throws SQLException {
         String buscaEmprestimo = """
             SELECT e.id_livro, e.data_emprestimo, e.data_devolucao, e.status, a.id_aluno, a.nome_aluno, l.titulo

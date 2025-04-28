@@ -73,7 +73,7 @@ public class EmprestimoDAO {
         }
     }
 
-    // Método para registrar a devolução de um empréstimo
+ // Método para registrar a devolução de um empréstimo
     public static void registrarDevolucao(int idEmprestimo) throws SQLException {
         String buscaEmprestimo = """
             SELECT e.id_livro, e.data_emprestimo, e.data_devolucao, e.status, a.id_aluno, a.nome_aluno, l.titulo
@@ -88,11 +88,7 @@ public class EmprestimoDAO {
             (id_aluno, nome_aluno, id_livro, titulo, data_emprestimo, data_devolucao, data_devolucao_real, valor_multa, status) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
-        String atualizaEmprestimo = """
-            UPDATE Emprestimos 
-            SET valor_multa = ?, status = 'DEVOLVIDO', data_devolucao_real = ? 
-            WHERE id_emprestimo = ?
-        """;
+        String atualizaMultaEmprestimo = "UPDATE Emprestimos SET valor_multa = ?, status = 'DEVOLVIDO' WHERE id_emprestimo = ?";
 
         try (Connection conn = DB.getConnection()) {
             conn.setAutoCommit(false);
@@ -153,11 +149,10 @@ public class EmprestimoDAO {
                     stmt.executeUpdate();
                 }
 
-                // Atualiza a multa, status e data de devolução real no empréstimo original
-                try (PreparedStatement stmt = conn.prepareStatement(atualizaEmprestimo)) {
+                // Atualiza status e multa no empréstimo original
+                try (PreparedStatement stmt = conn.prepareStatement(atualizaMultaEmprestimo)) {
                     stmt.setDouble(1, multa);
-                    stmt.setDate(2, Date.valueOf(dataDevolvida));
-                    stmt.setInt(3, idEmprestimo);
+                    stmt.setInt(2, idEmprestimo);
                     stmt.executeUpdate();
                 }
 
@@ -175,6 +170,7 @@ public class EmprestimoDAO {
             }
         }
     }
+
 
     // Método para calcular multa por atraso
     private static double calcularMulta(LocalDate dataPrevista, LocalDate dataDevolvida) {

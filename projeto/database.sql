@@ -36,8 +36,8 @@ CREATE TABLE Emprestimos (
     CONSTRAINT chk_devolucao CHECK (data_devolucao_real >= data_emprestimo) 
 );
 
--- TABELA RELATORIOEMPRESTIMOS
-CREATE TABLE RelatorioEmprestimos (
+-- TABELA EMPRESTIMOS FINALIZADOS
+CREATE TABLE EmprestimosFinalizados (
     id_relatorio INT AUTO_INCREMENT PRIMARY KEY, 
     id_aluno INT,
     nome_aluno VARCHAR(100),
