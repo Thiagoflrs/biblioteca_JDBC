@@ -12,27 +12,24 @@ public class EmprestimoDAO {
 
     // Método para registrar um novo empréstimo
     public static void registrarEmprestimo(int idAluno, int idLivro) throws SQLException {
-        // Consultas SQL para verificar a existência do aluno e do livro, e para atualizar o estoque
         String verificaAluno = "SELECT id_aluno FROM Alunos WHERE id_aluno = ?";
         String verificaLivro = "SELECT quantidade_estoque FROM Livros WHERE id_livro = ?";
         String atualizaEstoque = "UPDATE Livros SET quantidade_estoque = quantidade_estoque - 1 WHERE id_livro = ?";
-        String insereEmprestimo = "INSERT INTO Emprestimos (id_aluno, id_livro, data_emprestimo, data_devolucao) VALUES (?, ?, ?, ?)";
+        String insereEmprestimo = "INSERT INTO Emprestimos (id_aluno, id_livro, data_emprestimo, data_devolucao, status) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection conn = DB.getConnection()) {
-            conn.setAutoCommit(false);  // Inicia transação (garante que tudo seja feito ou nada)
+            conn.setAutoCommit(false);
 
-            // Verifica se o aluno existe
             try (PreparedStatement stmt = conn.prepareStatement(verificaAluno)) {
                 stmt.setInt(1, idAluno);
                 try (ResultSet rs = stmt.executeQuery()) {
                     if (!rs.next()) {
-                        conn.rollback();  // Desfaz a transação se o aluno não for encontrado
+                        conn.rollback();
                         throw new SQLException("Aluno não encontrado.");
                     }
                 }
             }
 
-            // Verifica se o livro existe e se há estoque disponível
             int estoque = 0;
             try (PreparedStatement stmt = conn.prepareStatement(verificaLivro)) {
                 stmt.setInt(1, idLivro);
@@ -40,124 +37,101 @@ public class EmprestimoDAO {
                     if (rs.next()) {
                         estoque = rs.getInt("quantidade_estoque");
                     } else {
-                        conn.rollback();  // Desfaz a transação se o livro não for encontrado
+                        conn.rollback();
                         throw new SQLException("Livro não encontrado.");
                     }
                 }
             }
 
-            // Se não houver estoque disponível, cancela o empréstimo
             if (estoque <= 0) {
                 conn.rollback();
                 throw new SQLException("Livro sem estoque disponível.");
             }
 
-            // Atualiza o estoque do livro (diminui 1)
             try (PreparedStatement stmt = conn.prepareStatement(atualizaEstoque)) {
                 stmt.setInt(1, idLivro);
                 stmt.executeUpdate();
             }
 
-            // Registra o empréstimo no banco (com data de empréstimo e previsão de devolução)
             try (PreparedStatement stmt = conn.prepareStatement(insereEmprestimo)) {
                 stmt.setInt(1, idAluno);
                 stmt.setInt(2, idLivro);
-                stmt.setDate(3, Date.valueOf(LocalDate.now())); // data do empréstimo
-                stmt.setDate(4, Date.valueOf(LocalDate.now().plusDays(7))); // previsão de devolução (7 dias depois)
+                stmt.setDate(3, Date.valueOf(LocalDate.now()));
+                stmt.setDate(4, Date.valueOf(LocalDate.now().plusDays(7)));
+                stmt.setString(5, "EM_ABERTO");
                 stmt.executeUpdate();
             }
 
-            conn.commit();  // Comita a transação
+            conn.commit();
             System.out.println("Empréstimo registrado com sucesso!");
         }
     }
 
     // Método para registrar a devolução de um empréstimo
     public static void registrarDevolucao(int idEmprestimo) throws SQLException {
-        // Consultas SQL para buscar o empréstimo, atualizar estoque e registrar no relatório
-        String buscaEmprestimo = "SELECT id_aluno, id_livro, data_emprestimo, data_devolucao FROM Emprestimos WHERE id_emprestimo = ?";
+        String buscaEmprestimo = "SELECT id_livro, data_devolucao FROM Emprestimos WHERE id_emprestimo = ?";
         String atualizaEstoque = "UPDATE Livros SET quantidade_estoque = quantidade_estoque + 1 WHERE id_livro = ?";
-        String insereRelatorio = "INSERT INTO RelatorioEmprestimos (id_aluno, id_livro, data_emprestimo, data_devolucao_prevista, data_devolucao_real, valor_multa) VALUES (?, ?, ?, ?, ?, ?)";
-        String deletarEmprestimo = "DELETE FROM Emprestimos WHERE id_emprestimo = ?";
+        String atualizaEmprestimo = "UPDATE Emprestimos SET data_devolucao_real = ?, valor_multa = ?, status = 'DEVOLVIDO' WHERE id_emprestimo = ?";
 
         try (Connection conn = DB.getConnection()) {
-            conn.setAutoCommit(false);  // Inicia transação (garante que tudo seja feito ou nada)
+            conn.setAutoCommit(false);
 
-            int idAluno = -1;
             int idLivro = -1;
-            LocalDate dataEmprestimo = null;
             LocalDate dataPrevista = null;
 
-            // Busca as informações do empréstimo a partir do ID
             try (PreparedStatement stmt = conn.prepareStatement(buscaEmprestimo)) {
                 stmt.setInt(1, idEmprestimo);
                 try (ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
-                        idAluno = rs.getInt("id_aluno");
                         idLivro = rs.getInt("id_livro");
-                        dataEmprestimo = rs.getDate("data_emprestimo").toLocalDate();
                         dataPrevista = rs.getDate("data_devolucao").toLocalDate();
                     } else {
-                        conn.rollback();  // Desfaz a transação se o empréstimo não for encontrado
+                        conn.rollback();
                         throw new SQLException("Empréstimo não encontrado.");
                     }
                 }
             }
 
-            // Atualiza o estoque do livro (aumenta 1)
             try (PreparedStatement stmt = conn.prepareStatement(atualizaEstoque)) {
                 stmt.setInt(1, idLivro);
                 stmt.executeUpdate();
             }
 
-            // Calcula a multa, caso o empréstimo tenha sido devolvido após o prazo
-            LocalDate hoje = LocalDate.now();
-            double multa = calcularMulta(dataPrevista, hoje);
+            LocalDate dataDevolvida = LocalDate.now();
+            double multa = calcularMulta(dataPrevista, dataDevolvida);
 
-            // Registra o empréstimo no relatório (com os dados de devolução e multa, se houver)
-            try (PreparedStatement stmt = conn.prepareStatement(insereRelatorio)) {
-                stmt.setInt(1, idAluno);
-                stmt.setInt(2, idLivro);
-                stmt.setDate(3, Date.valueOf(dataEmprestimo));
-                stmt.setDate(4, Date.valueOf(dataPrevista));
-                stmt.setDate(5, Date.valueOf(hoje));  // Data real da devolução
-                stmt.setDouble(6, multa);             // Multa calculada
+            try (PreparedStatement stmt = conn.prepareStatement(atualizaEmprestimo)) {
+                stmt.setDate(1, Date.valueOf(dataDevolvida));
+                stmt.setDouble(2, multa);
+                stmt.setInt(3, idEmprestimo);
                 stmt.executeUpdate();
             }
 
-            // Deleta o empréstimo da tabela de empréstimos após devolução
-            try (PreparedStatement stmt = conn.prepareStatement(deletarEmprestimo)) {
-                stmt.setInt(1, idEmprestimo);
-                stmt.executeUpdate();
-            }
-
-            conn.commit();  // Comita a transação
+            conn.commit();
 
             if (multa > 0) {
-                System.out.println("Devolução atrasada. Multa: R$ " + multa);
+                System.out.println("Devolução atrasada. Multa aplicada: R$ " + multa);
             } else {
-                System.out.println("Devolução realizada no prazo. Sem multa!");
+                System.out.println("Devolução realizada no prazo. Sem multa.");
             }
         }
     }
 
-    // Método para calcular a multa (R$3 por dia de atraso)
     private static double calcularMulta(LocalDate dataPrevista, LocalDate dataDevolvida) {
         if (dataDevolvida.isAfter(dataPrevista)) {
             long diasAtraso = java.time.temporal.ChronoUnit.DAYS.between(dataPrevista, dataDevolvida);
-            return diasAtraso * 3.0; // R$3,00 por dia de atraso
+            return diasAtraso * 3.0;
         }
-        return 0.0;  // Não há multa se o livro for devolvido dentro do prazo
+        return 0.0;
     }
 
-    // Método para listar os alunos que têm multa
     public static void listarAlunosComMulta() throws SQLException {
         String sql = """
             SELECT a.nome_aluno, e.valor_multa
             FROM Emprestimos e
             JOIN Alunos a ON e.id_aluno = a.id_aluno
             WHERE e.valor_multa > 0
-        """; 
+        """;
 
         try (Connection conn = DB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
@@ -179,13 +153,12 @@ public class EmprestimoDAO {
         }
     }
 
-    // Método para listar os relatórios de empréstimos
     public static void listarRelatorioEmprestimosConcluidos() throws SQLException {
         String sql = """
             SELECT nome_aluno, titulo, data_emprestimo, data_devolucao, data_devolucao_real, valor_multa
             FROM RelatorioEmprestimos
-            WHERE data_devolucao_real IS NOT NULL
-            """;
+            WHERE status = 'DEVOLVIDO'
+        """;
 
         try (Connection conn = DB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
@@ -199,12 +172,12 @@ public class EmprestimoDAO {
                 String nomeAluno = rs.getString("nome_aluno");
                 String tituloLivro = rs.getString("titulo");
                 LocalDate dataEmprestimo = rs.getDate("data_emprestimo").toLocalDate();
-                LocalDate dataDevolucaoPrevista = rs.getDate("data_devolucao_prevista").toLocalDate();
+                LocalDate dataDevolucao = rs.getDate("data_devolucao").toLocalDate();
                 LocalDate dataDevolucaoReal = rs.getDate("data_devolucao_real").toLocalDate();
                 double multa = rs.getDouble("valor_multa");
 
-                System.out.printf("Aluno: %s | Livro: %s | Data Empréstimo: %s | Data Devolução Prevista: %s | Data Devolução Real: %s | Multa: R$ %.2f%n",
-                        nomeAluno, tituloLivro, dataEmprestimo, dataDevolucaoPrevista, dataDevolucaoReal, multa);
+                System.out.printf("Aluno: %s | Livro: %s | Empréstimo: %s | Devolução Prevista: %s | Devolução Real: %s | Multa: R$ %.2f%n",
+                        nomeAluno, tituloLivro, dataEmprestimo, dataDevolucao, dataDevolucaoReal, multa);
             }
 
             if (!encontrou) {
@@ -212,4 +185,5 @@ public class EmprestimoDAO {
             }
         }
     }
+    
 }

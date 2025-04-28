@@ -23,14 +23,16 @@ CREATE TABLE Emprestimos (
     id_emprestimo INT AUTO_INCREMENT PRIMARY KEY,
     id_aluno INT NOT NULL,
     id_livro INT NOT NULL,
-    data_emprestimo DATE DEFAULT CURRENT_DATE,
+    data_emprestimo DATETIME DEFAULT CURRENT_TIMESTAMP,
     data_devolucao DATE,
-    data_devolucao_real DATE DEFAULT CURRENT_DATE,
+    data_devolucao_real DATETIME DEFAULT NULL,
     valor_multa DECIMAL(10,2),
+    status VARCHAR(20) DEFAULT 'EM_ABERTO',  -- Adicionando a coluna de status
     FOREIGN KEY (id_aluno) REFERENCES Alunos(id_aluno),
     FOREIGN KEY (id_livro) REFERENCES Livros(id_livro)
 );
 
+-- CRIAÇÃO DO RELATÓRIO DE EMPRÉSTIMOS (VISÃO)
 CREATE VIEW RelatorioEmprestimos AS
 SELECT 
     e.id_emprestimo AS id_relatorio,
@@ -41,14 +43,14 @@ SELECT
     e.data_emprestimo,
     e.data_devolucao,
     e.data_devolucao_real,
-    e.valor_multa
+    e.valor_multa,
+    e.status  -- Adicionando status no relatório
 FROM 
     Emprestimos e
 INNER JOIN 
     Alunos a ON e.id_aluno = a.id_aluno
 INNER JOIN 
     Livros l ON e.id_livro = l.id_livro;
-
 
 -- INSERÇÃO DE ALUNOS
 INSERT INTO Alunos (nome_aluno, matricula, data_nascimento, curso) VALUES
