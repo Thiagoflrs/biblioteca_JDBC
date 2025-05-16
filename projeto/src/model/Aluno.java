@@ -4,36 +4,37 @@ import java.time.LocalDate;
 import java.util.Objects;
 
 public class Aluno {
-	private Integer id;
-	private String nome;
+	private Integer idAluno;
+	private String nomeAluno;
 	private String matricula;
 	private LocalDate dataNascimento;
 	private String curso;
 
 	public Aluno() {}
 
-	public Aluno(Integer id, String nome, String matricula, LocalDate dataNascimento, String curso) {
-		this.id = id;
-		this.nome = nome;
+	public Aluno(Integer idAluno, String nomeAluno, String matricula, LocalDate dataNascimento, String curso) {
+		super();
+		this.idAluno = idAluno;
+		this.nomeAluno = nomeAluno;
 		this.matricula = matricula;
 		this.dataNascimento = dataNascimento;
 		this.curso = curso;
 	}
 
-	public Integer getId() {
-		return id;
+	public Integer getIdAluno() {
+		return idAluno;
 	}
 
-	public void setId(Integer id) {
-		this.id = id;
+	public void setIdAluno(Integer idAluno) {
+		this.idAluno = idAluno;
 	}
 
-	public String getNome() {
-		return nome;
+	public String getNomeAluno() {
+		return nomeAluno;
 	}
 
-	public void setNome(String nome) {
-		this.nome = nome;
+	public void setNomeAluno(String nomeAluno) {
+		this.nomeAluno = nomeAluno;
 	}
 
 	public String getMatricula() {
@@ -59,19 +60,10 @@ public class Aluno {
 	public void setCurso(String curso) {
 		this.curso = curso;
 	}
-	
-	@Override
-	public String toString() {
-		return "Aluno [id=" + id + 
-		       ", nome=" + nome + 
-		       ", matrícula=" + matricula + 
-		       ", dataNascimento=" + dataNascimento + 
-		       ", curso=" + curso + "]";
-	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id);
+		return Objects.hash(idAluno);
 	}
 
 	@Override
@@ -83,8 +75,13 @@ public class Aluno {
 		if (getClass() != obj.getClass())
 			return false;
 		Aluno other = (Aluno) obj;
-		return Objects.equals(id, other.id);
+		return Objects.equals(idAluno, other.idAluno);
 	}
-	
+
+	@Override
+	public String toString() {
+		return "Aluno [idAluno=" + idAluno + ", nomeAluno=" + nomeAluno + ", matricula=" + matricula
+				+ ", dataNascimento=" + dataNascimento + ", curso=" + curso + "]";
+	}
 	
 }

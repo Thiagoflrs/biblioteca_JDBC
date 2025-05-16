@@ -79,7 +79,6 @@ public class LivroDAO {
                 livro.setAutor(rs.getString("autor"));
                 livro.setAnoPublicacao(rs.getInt("ano_publicacao"));  // Recupera o ano de publicação como inteiro
                 livro.setQuantidadeEstoque(rs.getInt("quantidade_estoque"));
-                livro.setQuantidadeEmprestada(rs.getInt("quantidade_emprestada"));
 
                 lista.add(livro);  // Adiciona o livro à lista
             }

@@ -12,6 +12,7 @@ public class Livro {
 
     public Livro() {}
 
+
 	public Livro(Integer idLivro, String titulo, String autor, int anoPublicacao, int quantidadeEstoque) {
 		super();
 		this.idLivro = idLivro;
@@ -20,6 +21,8 @@ public class Livro {
 		this.anoPublicacao = anoPublicacao;
 		this.quantidadeEstoque = quantidadeEstoque;
 	}
+
+
 
 	public Integer getIdLivro() {
 		return idLivro;

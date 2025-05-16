@@ -79,7 +79,6 @@ public class LivroDAO {
                 livro.setAutor(rs.getString("autor"));
                 livro.setAnoPublicacao(rs.getInt("ano_publicacao"));  // Recupera o ano de publicação como inteiro
                 livro.setQuantidadeEstoque(rs.getInt("quantidade_estoque"));
-                livro.setQuantidadeEmprestada(rs.getInt("quantidade_emprestada"));
 
                 lista.add(livro);  // Adiciona o livro à lista
             }
@@ -119,7 +118,7 @@ public class LivroDAO {
             
             // Verifica se a atualização foi realizada
             if (rowsAffected > 0) {
-                System.out.println("Livro com ID " + livro.getIdLivro() + " atualizado com sucesso.");
+                System.out.println("Livro com ID " + livro.getId() + " atualizado com sucesso.");
             } else {
                 System.out.println("Nenhum livro encontrado com o ID informado.");
             }

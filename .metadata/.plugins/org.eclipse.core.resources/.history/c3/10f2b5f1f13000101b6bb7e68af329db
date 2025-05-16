@@ -1,7 +1,6 @@
 package model;
 
 import java.time.LocalDate;
-import java.util.Objects;
 
 public class Emprestimo {
 	private int idEmprestimo;
@@ -66,53 +65,10 @@ public class Emprestimo {
 		this.dataDevolucao = dataDevolucao;
 	}
 
-	public LocalDate getDataDevolucaoReal() {
-		return dataDevolucaoReal;
-	}
-
-	public void setDataDevolucaoReal(LocalDate dataDevolucaoReal) {
-		this.dataDevolucaoReal = dataDevolucaoReal;
-	}
-
-	public double getValorMulta() {
-		return valorMulta;
-	}
-
-	public void setValorMulta(double valorMulta) {
-		this.valorMulta = valorMulta;
-	}
-
-	public String getStatus() {
-		return status;
-	}
-
-	public void setStatus(String status) {
-		this.status = status;
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(idLivro);
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Emprestimo other = (Emprestimo) obj;
-		return idLivro == other.idLivro;
-	}
-
 	@Override
 	public String toString() {
 		return "Emprestimo [idEmprestimo=" + idEmprestimo + ", idAluno=" + idAluno + ", idLivro=" + idLivro
-				+ ", dataEmprestimo=" + dataEmprestimo + ", dataDevolucao=" + dataDevolucao + ", dataDevolucaoReal="
-				+ dataDevolucaoReal + ", valorMulta=" + valorMulta + ", status=" + status + "]";
+				+ ", dataEmprestimo=" + dataEmprestimo + ", dataDevolucao=" + dataDevolucao + "]";
 	}
-
 	
 }

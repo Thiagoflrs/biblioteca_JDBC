@@ -1,7 +1,6 @@
 package model;
 
 import java.time.LocalDate;
-import java.util.Objects;
 
 public class Emprestimo {
 	private int idEmprestimo;
@@ -88,30 +87,6 @@ public class Emprestimo {
 
 	public void setStatus(String status) {
 		this.status = status;
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(idLivro);
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Emprestimo other = (Emprestimo) obj;
-		return idLivro == other.idLivro;
-	}
-
-	@Override
-	public String toString() {
-		return "Emprestimo [idEmprestimo=" + idEmprestimo + ", idAluno=" + idAluno + ", idLivro=" + idLivro
-				+ ", dataEmprestimo=" + dataEmprestimo + ", dataDevolucao=" + dataDevolucao + ", dataDevolucaoReal="
-				+ dataDevolucaoReal + ", valorMulta=" + valorMulta + ", status=" + status + "]";
 	}
 
 	

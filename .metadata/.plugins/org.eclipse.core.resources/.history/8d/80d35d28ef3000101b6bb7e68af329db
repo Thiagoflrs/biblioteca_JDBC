@@ -112,7 +112,7 @@ public class AlunoDAO {
 
             // Verifica se algum registro foi atualizado
             if (rowsAffected > 0) {
-                System.out.println("Aluno com ID " + aluno.getIdAluno() + " atualizado com sucesso.");
+                System.out.println("Aluno com ID " + aluno.getId() + " atualizado com sucesso.");
             } else {
                 System.out.println("Nenhum aluno atualizado, ID informado não existe!");
             }

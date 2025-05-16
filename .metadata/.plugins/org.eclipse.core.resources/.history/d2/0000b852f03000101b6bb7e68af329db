@@ -12,13 +12,15 @@ public class Livro {
 
     public Livro() {}
 
-	public Livro(Integer idLivro, String titulo, String autor, int anoPublicacao, int quantidadeEstoque) {
+	public Livro(Integer idLivro, String titulo, String autor, int anoPublicacao, int quantidadeEstoque,
+			int quantidadeEmprestada) {
 		super();
 		this.idLivro = idLivro;
 		this.titulo = titulo;
 		this.autor = autor;
 		this.anoPublicacao = anoPublicacao;
 		this.quantidadeEstoque = quantidadeEstoque;
+		this.quantidadeEmprestada = quantidadeEmprestada;
 	}
 
 	public Integer getIdLivro() {

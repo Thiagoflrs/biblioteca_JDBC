@@ -72,7 +72,7 @@ public class AlunoDAO {
             while (rs.next()) {
                 Aluno aluno = new Aluno();
                 aluno.setIdAluno(rs.getInt("id_aluno")); // pega o id do banco
-                aluno.setNomeAluno(rs.getString("nome_aluno"));
+                aluno.setNome(rs.getString("nome_aluno"));
                 aluno.setMatricula(rs.getString("matricula"));
                 aluno.setDataNascimento(rs.getDate("data_nascimento").toLocalDate()); // converte Date para LocalDate
                 aluno.setCurso(rs.getString("curso"));
@@ -102,17 +102,17 @@ public class AlunoDAO {
              PreparedStatement st = conn.prepareStatement(sql)) {
 
             // Define os valores atualizados
-            st.setString(1, aluno.getNomeAluno());
+            st.setString(1, aluno.getNome());
             st.setString(2, aluno.getMatricula());
             st.setDate(3, Date.valueOf(aluno.getDataNascimento()));
             st.setString(4, aluno.getCurso());
-            st.setInt(5, aluno.getIdAluno()); // ID do aluno a ser atualizado
+            st.setInt(5, aluno.getId()); // ID do aluno a ser atualizado
 
             int rowsAffected = st.executeUpdate(); // Executa a atualização
 
             // Verifica se algum registro foi atualizado
             if (rowsAffected > 0) {
-                System.out.println("Aluno com ID " + aluno.getIdAluno() + " atualizado com sucesso.");
+                System.out.println("Aluno com ID " + aluno.getId() + " atualizado com sucesso.");
             } else {
                 System.out.println("Nenhum aluno atualizado, ID informado não existe!");
             }
