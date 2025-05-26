@@ -22,9 +22,10 @@ public class Program {
             System.out.println("1 - Registrar Empréstimo");
             System.out.println("2 - Registrar Devolução");
             System.out.println("3 - Listar Alunos com Multa");
-            System.out.println("4 - Listar Relatório de Empréstimos Concluídos");
-            System.out.println("5 - Gerenciar Aluno");
-            System.out.println("6 - Gerenciar Livro");
+            System.out.println("4 - Listar Empréstimos em Aberto");
+            System.out.println("5 - Listar Relatório de Empréstimos Concluídos");
+            System.out.println("6 - Gerenciar Aluno");
+            System.out.println("7 - Gerenciar Livro");
             System.out.println("0 - Sair");
             System.out.print("Escolha uma opção: ");
             opcao = sc.nextInt();
@@ -44,14 +45,18 @@ public class Program {
                         break;
                         
                     case 4:
+                    	listarEmprestimosEmAberto();
+                        break;
+                        
+                    case 5:
                         listarRelatorioEmprestimosConcluidos();  // Opção para listar empréstimos concluídos
                         break;
 
-                    case 5:
+                    case 6:
                         crudAluno(sc);  // CRUD de Aluno
                         break;
 
-                    case 6:
+                    case 7:
                         crudLivro(sc);  // CRUD de Livro
                         break;
 
@@ -69,6 +74,10 @@ public class Program {
 
         sc.close();
     }
+    
+    public static void listarEmprestimosEmAberto() throws SQLException {
+        EmprestimoDAO.listarEmprestimosEmAberto();
+    }    
     
     public static void listarRelatorioEmprestimosConcluidos() throws SQLException {
         EmprestimoDAO.listarRelatorioEmprestimosConcluidos(); 

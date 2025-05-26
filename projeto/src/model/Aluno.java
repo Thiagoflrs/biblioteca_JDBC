@@ -10,8 +10,9 @@ public class Aluno {
 	private LocalDate dataNascimento;
 	private String curso;
 
-	public Aluno() {}
-
+	public Aluno () {
+	}
+	
 	public Aluno(Integer idAluno, String nomeAluno, String matricula, LocalDate dataNascimento, String curso) {
 		super();
 		this.idAluno = idAluno;
