@@ -90,9 +90,11 @@ public class Emprestimo {
 		this.status = status;
 	}
 
+	
+	
 	@Override
 	public int hashCode() {
-		return Objects.hash(idLivro);
+		return Objects.hash(idEmprestimo);
 	}
 
 	@Override
@@ -104,7 +106,7 @@ public class Emprestimo {
 		if (getClass() != obj.getClass())
 			return false;
 		Emprestimo other = (Emprestimo) obj;
-		return idLivro == other.idLivro;
+		return idEmprestimo == other.idEmprestimo;
 	}
 
 	@Override
